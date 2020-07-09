@@ -5,6 +5,7 @@
  */
  
 use <MCAD/boxes.scad>
+use <MCAD/regular_shapes.scad>
 
 /* [Dimensions] */
 
@@ -140,11 +141,16 @@ module render_lid()
                    radius=Radius, sidesonly=true);
         translate([LidThick, LidThick, LidThick])
             // Reduce interior radius slightly to relax fit with box
-            RoundedBox(size=[Width - 2*LidThick,
-                            Length - 2*LidThick,
+            RoundedBox(size=[Width - 2*LidThick + .01,
+                            Length - 2*LidThick + .01,
                             LidHeight],
-                       radius=Radius-.5, sidesonly=true);
+                       radius=Radius-LidThick/2, sidesonly=true);
+        translate([Width/2,Length/2,LidHeight+LidThick])
+        rotate([90,0,0])
+            scale([1, .5, 1])
+            cylinder(h=Length + 1, r=LidHeight, center=true);
     }
+//    ellipticalCylinder(depth=Length + .004, width=LidHeight / 2, height = LidHeight);
 }
 
 module render_mono()
