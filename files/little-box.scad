@@ -5,7 +5,6 @@
  */
  
 use <MCAD/boxes.scad>
-// use <MCAD/regular_shapes.scad>
 
 /* [Dimensions] */
 
@@ -28,14 +27,17 @@ WDiv2 = 3;
 
 /* [Lid] */
 
-LidHeight = 4;
+LidHeight = 40;
+RimHeight = 12;
 LidThick = 1.2;
 LidRounded = false;
 LidRelief = 0.15;
+Notchspan = .25;
 
 /* [Options] */
-Make_Box = true;
-Make_Lid = true;
+Make_Box = false;
+MakeSqLid = false;
+MakeRLid = false;
 
 $fa = 0.5;
 $fs = 0.5;
@@ -120,7 +122,7 @@ module render_box()
             }
         }
         // subtract the rim for the lid
-        translate([-1, -1, Height - LidHeight + LidThick])
+        translate([-1, -1, Height - RimHeight + LidThick])
             RoundedShell(size=[Width + 2, Length + 2, LidHeight + 1],
                          radius=Radius + 1, thickness=LidThick + 1);
     }
@@ -129,22 +131,27 @@ module render_box()
 module render_rlid()
 {
     difference() {
-        RoundedBox(size=[Width, Length, LidHeight + Radius + 5],
-                   radius=Radius, sidesonly=false);
-        translate([LidThick-LidRelief/2, LidThick-LidRelief/2, LidThick])
-            RoundedBox(size=[Width - 2*LidThick + LidRelief,
-                            Length - 2*LidThick + LidRelief,
-                            LidHeight+2*Radius],
+        RoundedBox(size=[Width, Length, 2*(LidHeight + Radius)],
+                   radius=Radius, sidesonly=false, center=true);
+        translate([0, 0, LidThick])
+            RoundedBox(size=[Width - 2*LidThick,
+                            Length - 2*LidThick,
+                            2*(LidHeight+Radius)],
                        radius=max(Radius-LidThick, 0),
-                       sidesonly=false);
+                       sidesonly=false, center=true);
+            
+        RoundedBox(size=[Width - 2*LidThick + LidRelief,
+                         Length - 2*LidThick + LidRelief,
+                         LidHeight+2*Radius],
+                   radius=max(Radius-LidThick, LidRelief),
+                   sidesonly=true, center=true);
         // square off the bottom of the lid
-        translate([-.5, -.5, LidHeight+Radius/2])
-            cube([Width + 1, Length + 1, LidHeight + 10], center=false);
+        translate([0, 0, LidHeight])
+            cube([Width + 1, Length + 1, 2*LidHeight], center=true);
         // Thumb notch
-        translate([Width/2,Length/2,LidHeight+LidThick+Radius/2])
         rotate([90,0,0])
             scale([1, .5, 1])
-            cylinder(h=Length + 1, r=LidHeight, center=true);
+            cylinder(h=Length + 10, r=LidHeight, center=true);
     }
 }
 
@@ -153,32 +160,42 @@ module render_sqlid()
     difference() {
         RoundedBox(size=[Width, Length, LidHeight],
                    radius=Radius, sidesonly=true, center=true);
+
+        // subtract interior
         translate([0, 0, LidThick])
+            RoundedBox(size=[Width - 2*LidThick - 2*Thickness,
+                            Length - 2*LidThick - 2*Thickness,
+                            LidHeight],
+                       radius=max(0, Radius-LidThick-Thickness),
+                       sidesonly=true, center=true);
+
+        // subtract rim
+        translate([0, 0, LidThick + (LidHeight - RimHeight)/2])
             RoundedBox(size=[Width - 2*LidThick + LidRelief,
                             Length - 2*LidThick + LidRelief,
-                            LidHeight],
+                            RimHeight],
                        radius=max(0, Radius-LidThick)+LidRelief,
                        sidesonly=true, center=true);
         // Thumb notch
         translate([0,0,LidHeight/2+LidThick])
         rotate([90,0,0])
-            scale([1, .5, 1])
-            cylinder(h=Length + 1, r=LidHeight, center=true);
+            scale([(Notchspan/2) * Width/RimHeight, .5, 1])
+            cylinder(h=Length + 1, r=RimHeight, center=true);
     }
 }
 
-module render_lid()
-{
-    if (LidRounded)
-        render_rlid();
-    else
+
+if (MakeSqLid) {
+    translate([-Width/2 - 5, Length / 2, LidHeight / 2])
         render_sqlid();
 }
 
-if (Make_Lid)
-    translate([-Width/2 - 5, Length / 2, LidHeight / 2])
-        render_lid();
+if (MakeRLid) {
+    translate([-Width - 5, 0, 0])
+        render_rlid();
+}
 
-if (Make_Box)
+if (Make_Box) {
     translate([5, 0, 0])
         render_box();
+}
