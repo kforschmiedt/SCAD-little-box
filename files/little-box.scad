@@ -1,7 +1,9 @@
 /*
- * (C)Copyright 2020 Kent Forschmiedt
+ * little-box-scad
+ * A configurable, printable utility box and lid
  *
- * Released under Creative Commons
+ * (C)Copyright 2020 Kent Forschmiedt, All Rights Reserved
+ * Licensed under Creative Commons
  */
  
 use <MCAD/boxes.scad>
