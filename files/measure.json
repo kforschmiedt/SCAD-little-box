@@ -1,0 +1,35 @@
+{
+    "parameterSets": {
+        "2oz Shot Glass": {
+            "$fn": "120",
+            "Angle": "82",
+            "Base": "17",
+            "Height": "52",
+            "Ounces": "true",
+            "Wall": "2"
+        },
+        "2C": {
+            "$fn": "90",
+            "Angle": "82",
+            "Base": "37.5",
+            "HashSet": "1",
+            "Height": "80",
+            "Wall": "2"
+        },
+        "2oz SG Tall Hash": {
+            "$fn": "180",
+            "Angle": "82",
+            "Base": "17",
+            "HashSet": "0",
+            "Hdepth": "1",
+            "Height": "52",
+            "Hembed": "0.2",
+            "Hheight": "5",
+            "Hlip": "0.5",
+            "Use_Hash1": "true",
+            "Use_Hash2": "false",
+            "Wall": "2"
+        }
+    },
+    "fileFormatVersion": "1"
+}
