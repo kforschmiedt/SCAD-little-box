@@ -1,0 +1,70 @@
+{
+    "parameterSets": {
+        "Lid1": {
+            "$fa": "0.25",
+            "$fn": "0",
+            "Height": "45",
+            "Make_Plug": "true",
+            "Radius": "44.2",
+            "Taper": "1.8",
+            "Wall": "12"
+        },
+        "Lid3": {
+            "$fa": "0.55",
+            "$fn": "0",
+            "Height": "45",
+            "KnobMult": "0.25",
+            "Make_Plug": "true",
+            "Radius": "44.2",
+            "RimR1Den": "32",
+            "RimR1Num": "31",
+            "RimR2Den": "13",
+            "RimR2Num": "1",
+            "Taper": "1.4",
+            "Wall": "12"
+        },
+        "Lid4": {
+            "$fa": "0.25",
+            "$fn": "0",
+            "Height": "45",
+            "KnobMult": "0.25",
+            "Make_Plug": "true",
+            "Radius": "44.2",
+            "RimR1Den": "64",
+            "RimR1Num": "61",
+            "RimR2Den": "64",
+            "RimR2Num": "7",
+            "Taper": "1.4",
+            "Wall": "8"
+        },
+        "Lid2": {
+            "$fa": "0.25",
+            "$fn": "0",
+            "Height": "45",
+            "KnobMult": "0.25",
+            "Make_Plug": "true",
+            "Radius": "44.2",
+            "RimR1Den": "32",
+            "RimR1Num": "31",
+            "RimR2Den": "13",
+            "RimR2Num": "1",
+            "Taper": "1.4",
+            "Wall": "12"
+        },
+        "Lid5": {
+            "$fa": "0.25",
+            "$fn": "0",
+            "Height": "45",
+            "KnobMult": "0.27",
+            "Make_Plug": "true",
+            "Radius": "44.2",
+            "RimR1Den": "64",
+            "RimR1Num": "61",
+            "RimR2Den": "64",
+            "RimR2Num": "7",
+            "Taper": "1.4",
+            "Wall": "8"
+        }
+    },
+    "fileFormatVersion": "1"
+}
