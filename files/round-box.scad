@@ -23,8 +23,9 @@ Sections = 5;
 LidHeight = 40;
 RimHeight = 8;
 LidRadius = 1.5;
+LidStyle = 3;
 
-/* [Decoration] */
+/* [Decoration (style 2)] */
 
 BurstSides = 8;
 BurstDiv = [12,15];
@@ -38,7 +39,7 @@ GemRadius = 3;
 
 GemScale = .5;
 
-/* [Weave] */
+/* [Weave (style 3)] */
 
 WeaveHeight = 1.1;
 WeaveInterval = 12;
@@ -55,7 +56,8 @@ Make_Wavy = false;
 $fa = 0.5;
 $fs = 0.5;
 
-module mirrorself(v=[0,0,1], overlap=.02) {
+module mirrorself(v=[0,0,1], overlap=.02)
+{
     translate([0, 0, -overlap])
         children(0);
     translate([0, 0, overlap])
@@ -105,7 +107,7 @@ module Rim()
     mirrorself(overlap=.01)
     _rim(radius=Radius1-1.5*Wall,
         height=RimHeight+.01,
-        rtop=.3*Wall,
+        rtop=.2*Wall,
         wbot=1.5*Wall);
 }
 
@@ -113,9 +115,9 @@ module LidGroove()
 {
     translate([0, 0, -0.05])
     _rim(radius=Radius1-1.5*Wall,
-         height=RimHeight+.55,
-         rtop=.4*Wall,
-         wbot=1.5*Wall+.5);
+         height=RimHeight+.35,
+         rtop=.35*Wall,
+         wbot=1.5*Wall+.6);
 }
 
 module render_box()
@@ -176,75 +178,7 @@ module lidgems(sides, ldiv, r, count=3, offset=0, zscale=1)
         gem(sides=sides, ldiv=ldiv, r=r, zscale=zscale);
 }
 
-module _layer(count, width, offset)
-{
-    for (i = [ 0 : count-1 ]) {
-        translate([0, 2*i * width, 0]) {
-            children(0);
-            
-            translate([0, width, 0])
-            mirror([0,0,1])
-                children(0);
-        }
-    }
-}
 
-module _weave(
-    width,
-    gap,
-    period,
-    cycles,
-    count)
-{
-    _layer(count=count/2, width=width+gap, offset=period/2)
-    translate([0, width + gap/2, 0])
-    rotate([90, 0, 0])
-        children(0);
-    
-    translate([gap/2, period*cycles, 0])
-    rotate([0,0,-90])
-    _layer(count=count/2, width=width+gap, offset=period/2)
-    translate([0, width, 0])
-    rotate([90, 0, 0])
-        children(0);
-}
-
-module weave(
-    yscale = 3,
-    gap = 3,
-    period = 30,
-    cycles = 5,
-    count = 10,
-    wall = 2)
-{
-    width = period/2 - gap;
-
-    _weave(width=width,gap=gap,period=period,cycles=cycles,count=count)
-    gravy(wall=wall,
-          width=width,
-          yscale=yscale,
-          period=period,
-          cycles=cycles);
-}
-
-module cyl_weave(h, r, yscale, gap, period, wall)
-{
-    cycles = 2*ceil(r/period);
-    count = 4*ceil(r/period);
-    rc = period*cycles/2;
-    
-    intersection() {
-        cylinder(h=h, r=r, center=true);
-        translate([-rc, -rc, 0])
-            weave(yscale=yscale,
-                  gap=gap,
-                  period=period,
-                  cycles=cycles,
-                  count=count,
-                  wall=wall);
-    }
-}
-    
 module lid1()
 {
     difference() {
@@ -315,8 +249,12 @@ if (Make_Box) {
 }
 
 if (Make_Lid) {
-    //translate([0,0,Height+.2])
-    lid3();
+    if (LidStyle == 1)
+        lid1();
+    else if (LidStyle == 2)
+        lid2();
+    else if (LidStyle == 3)
+        lid3();
 }
 
 if (Make_Rim) {
@@ -329,5 +267,4 @@ if (Make_Gem) {
 }
 
 if (Make_Wavy)
-//    gravy();
     weave();
