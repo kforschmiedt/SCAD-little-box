@@ -12,7 +12,6 @@ use <../../lib/shapes.scad>
 Radius = 50;
 Height = 5;
 Margin = 1.1;
-EdgeRadius = 2.5;
 Wall = 3;
 
 WeaveHeight = 1.1;
@@ -49,7 +48,7 @@ module coaster()
                      r=Radius,
                      center=false);
             translate([0,0,Height-Margin-yscale-WeaveThick/2])
-                stack(2, -(WeaveThick - .03))
+                stack(2, -(WeaveThick - .05))
                 disc_weave(h=Height,
                           r=Radius,
                           yscale=yscale,
