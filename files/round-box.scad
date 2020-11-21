@@ -23,6 +23,7 @@ Sections = 5;
 LidHeight = 40;
 RimHeight = 8;
 LidRadius = 1.5;
+LidGap = 0.25;
 LidStyle = 3;
 
 /* [Decoration (style 2)] */
@@ -46,12 +47,19 @@ WeaveInterval = 12;
 WeaveThick = 1.5;
 WeaveGap = 1.1;
 
+/* [Monogram (style 4)] */
+
+Monogram = "Hi!";
+MonoScale = 0.33;
+MonoHeight = 1.75;
+
 /* [Options] */
 Make_Box = false;
 Make_Rim = false;
 Make_Lid = false;
 Make_Gem = false;
 Make_Wavy = false;
+Make_Monogram = false;
 
 $fa = 0.5;
 $fs = 0.5;
@@ -92,6 +100,8 @@ module _rim(radius, height, rtop, wbot)
         [W, 0]
     ];
     
+    /* rotate to match body when fs is large */
+    rotate([0,0,180])
     rotate_extrude() {
         translate([radius, 0, 0]) {
             polygon(points=pts);
@@ -113,11 +123,12 @@ module Rim()
 
 module LidGroove()
 {
-    translate([0, 0, -0.05])
+    gap = LidGap;
+    translate([0, 0, -0.01])
     _rim(radius=Radius1-1.5*Wall,
-         height=RimHeight+.35,
-         rtop=.35*Wall,
-         wbot=1.5*Wall+.6);
+         height=RimHeight+gap+.01,
+         rtop=.2*Wall+gap,
+         wbot=1.5*Wall+2*gap);
 }
 
 module render_box()
@@ -178,6 +189,15 @@ module lidgems(sides, ldiv, r, count=3, offset=0, zscale=1)
         gem(sides=sides, ldiv=ldiv, r=r, zscale=zscale);
 }
 
+module _roundedLid()
+{
+    difference() {
+        cyl_rounded(height=LidHeight,
+                    radius=Radius1,
+                    redge=LidRadius);
+        LidGroove();
+    }
+}
 
 module lid1()
 {
@@ -190,12 +210,7 @@ module lid1()
 
 module lid2()
 {
-    difference() {
-        cyl_rounded(height=LidHeight,
-                    radius=Radius1,
-                    redge=LidRadius);
-        LidGroove();
-    }
+    _roundedLid();
 
     if (BurstSides > 0) {
         translate([0, 0, LidHeight]) {
@@ -232,10 +247,10 @@ module lid3()
                           center=true);
                     cyl_weave(h=LidHeight,
                           r=Radius1,
-                          yscale=yscale,
-                          gap=gap,
-                          period=period,
-                          wall=wall);
+                          wscale=yscale,
+                          wgap=gap,
+                          wcycles=LidRadius/period
+                          );
                 }
             }
         }
@@ -243,6 +258,45 @@ module lid3()
     }
 }
 
+module _letr(Str, Sizes, idx=0, base=0)
+{
+    echo(Str=Str, len=len(Str), base=base);
+    if (idx < len(Str)) {
+        size=Sizes[idx];
+        translate([base, 0, 0])
+        text(text=Str[idx],
+             size=size,
+             font="Script MT Bold:style=Italic");
+        _letr(Str, Sizes, idx+1, base+size);
+    }
+}
+
+module lid4()
+{
+    size = MonoScale * Radius1;
+
+    if (MonoHeight >= 0) {
+        _roundedLid();
+    
+        translate([0, -size/2, LidHeight+MonoHeight/2-.05])
+        linear_extrude(MonoHeight+.05, center=true)
+        text(text=Monogram,
+             size=size,
+             halign="center",
+             font="Script MT Bold:style=Italic");
+    } else {
+        difference() {
+            _roundedLid();
+    
+            translate([0, -size/2, LidHeight+MonoHeight/2])
+            linear_extrude(-MonoHeight+.1, center=true)
+            text(text=Monogram,
+                 size=size,
+                 halign="center",
+                 font="Script MT Bold:style=Italic");
+        }
+    }
+}
 
 if (Make_Box) {
     render_box();
@@ -255,6 +309,8 @@ if (Make_Lid) {
         lid2();
     else if (LidStyle == 3)
         lid3();
+    else if (LidStyle == 4)
+        lid4();
 }
 
 if (Make_Rim) {
@@ -268,3 +324,7 @@ if (Make_Gem) {
 
 if (Make_Wavy)
     weave();
+
+if (Make_Monogram)
+    _letr("KDF", [18,18,18]);
+
