@@ -1,0 +1,29 @@
+{
+    "parameterSets": {
+        "design default values": {
+            "$fn": "60",
+            "BaseInner": "34",
+            "BaseThick": "4",
+            "BodyWidth": "25",
+            "CounterSink": "1.5",
+            "LatchHeight": "6",
+            "LatchLip": "2",
+            "RiserInner": "19",
+            "RiserThick": "4",
+            "ScrewSize": "4.2"
+        },
+        "Plugmold": {
+            "$fn": "60",
+            "BaseInner": "33.6",
+            "BaseThick": "4.5",
+            "BodyLength": "25",
+            "CounterSink": "2",
+            "LatchHeight": "5",
+            "LatchLip": "3.2",
+            "RiserInner": "20.4",
+            "RiserThick": "3.5",
+            "ScrewSize": "4.2"
+        }
+    },
+    "fileFormatVersion": "1"
+}
