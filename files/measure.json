@@ -29,6 +29,63 @@
             "Use_Hash1": "true",
             "Use_Hash2": "false",
             "Wall": "2"
+        },
+        "2.5oz SG med hash": {
+            "$fn": "180",
+            "Angle": "81",
+            "Base": "17.1",
+            "HashSet": "0",
+            "Hdepth": "1",
+            "Height": "51",
+            "Hembed": "0.2",
+            "Hheight": "2.5",
+            "Hlip": "0.5",
+            "Use_Hash1": "true",
+            "Use_Hash2": "false",
+            "Wall": "2"
+        },
+        "2.5oz SG wide angle": {
+            "$fn": "180",
+            "Angle": "74",
+            "Base": "16.5",
+            "HashSet": "0",
+            "Hdepth": "0.8",
+            "Height": "43",
+            "Hembed": "0.2",
+            "Hheight": "2.5",
+            "Hlip": "0.5",
+            "Use_Hash1": "true",
+            "Use_Hash2": "false",
+            "Wall": "2"
+        },
+        "Brit SG 1": {
+            "$fn": "180",
+            "Angle": "72",
+            "Base": "12",
+            "HashSet": "2",
+            "Hdepth": "0.8",
+            "Height": "47",
+            "Hembed": "0.2",
+            "Hheight": "2.5",
+            "Hlip": "0.5",
+            "Use_Hash1": "true",
+            "Use_Hash2": "false",
+            "Wall": "2"
+        },
+        "500ml beaker": {
+            "$fn": "180",
+            "Angle": "90",
+            "Base": "41",
+            "HashSet": "3",
+            "Hdepth": "0.8",
+            "Height": "103",
+            "Hembed": "0.2",
+            "Hheight": "2.5",
+            "Hlip": "0.5",
+            "Spout": "true",
+            "Use_Hash1": "true",
+            "Use_Hash2": "false",
+            "Wall": "2.2"
         }
     },
     "fileFormatVersion": "1"
