@@ -26,16 +26,25 @@ WDiv1 = 2;
 LDiv2 = 1;
 WDiv2 = 3;
 
-
 /* [Lid] */
 
-LidHeight = 40;
-RimHeight = 12;
-LidThick = 1.2;
-LidRelief = 0.15;
-LidRadius = 1.1;
-Notchspan = .25;
+LidSlide = false;
+// Detent+Slide changes detent
 LidDetent = true;
+LidSlideDepth = 0.5;
+LidSlideRelief = 0.05;
+LidSlideAdjust = 0.1;
+
+LidHeight = 40;
+// Rim is really RimHeight - LidThick
+RimHeight = 9.5;
+RimAngle = 0;
+LidThick = 1.2;
+LidRelief = 0.28;
+// top edge radius
+LidRadius = 1.1;
+// Set to 0 when using slide
+Notchspan = .25;
 
 /* [Additions] */
 Mounting_Holes = false;
@@ -50,6 +59,7 @@ MakeLid = false;
 
 $fa = 0.5;
 $fs = 0.5;
+$fn = 60;
 
 /*
  * _coin - make a disc with rounded rim
@@ -80,18 +90,18 @@ module RoundedBox2(size, radius, radius2, top=true, bottom=true)
 {
     rot = [ [0,0,0], [90,0,90], [90,90,0] ];
 
-    cube([size[0], size[1]-radius*2, size[2]-radius2*2], center=true);
-    cube([size[0]-radius*2, size[1], size[2]-radius2*2], center=true);
+    cube([size[0], size[1]-radius*2+.02, size[2]-radius2*2+.02], center=true);
+    cube([size[0]-radius*2+.02, size[1], size[2]-radius2*2+.02], center=true);
     
-    cube([size[0]-radius*2, size[1]-radius2*2, size[2]], center=true);
-    cube([size[0]-radius2*2, size[1]-radius*2, size[2]], center=true);
+    cube([size[0]-radius*2+.02, size[1]-radius2*2+.02, size[2]], center=true);
+    cube([size[0]-radius2*2+.02, size[1]-radius*2+.02, size[2]], center=true);
 
     // Vertical edges
     for (x = [radius-size[0]/2, -radius+size[0]/2],
          y = [radius-size[1]/2, -radius+size[1]/2]) {
         rotate(rot[0])
         translate([x,y,0])
-            cylinder(h=size[2]-2*radius2, r=radius, center=true);
+            cylinder(h=size[2]-2*radius2+.02, r=radius, center=true);
     }
 
     // Top edges
@@ -100,7 +110,7 @@ module RoundedBox2(size, radius, radius2, top=true, bottom=true)
              y = [radius2-size[(axis+1)%3]/2, -radius2+size[(axis+1)%3]/2]) {
             rotate(rot[axis])
             translate([x, y, 0])
-                cylinder(h=size[(axis+2)%3]-2*radius, r=radius2, center=true);
+                cylinder(h=size[(axis+2)%3]-2*radius+.02, r=radius2, center=true);
         }
     }
 
@@ -153,20 +163,21 @@ module RoundedShell(size, radius, thickness, center=false)
  * _rail2 - orient a shape to rim wall
  *
  * xadjust - tune overlap
+ * rot - X rotation of object, default 90
  *
  * Puts object on left and right edges
  */
-module _rail2(xadjust)
+module _rail2(xadjust, rot=90)
 {
     // box is centered
     lx = -Width/2 + LidThick - xadjust;
     rx = Width/2 - LidThick + xadjust;
 
     translate([lx, 0, 0])
-    rotate([90,0,0])
+    rotate([rot,0,0])
         children(0);
     translate([rx, 0, 0])
-    rotate([90,180,0])
+    rotate([rot,0,180])
         children(0);
 }
 
@@ -181,11 +192,32 @@ module _rail2(xadjust)
  */
 module LDet(ladjust=0, xadjust=0)
 {
-    _rail2(xadjust)
+    _rail2(xadjust,rot=90)
         scale([.5,1,1])
-        #cylinder(h=Length/3+ladjust, r=.8*LidThick-LidRelief/2, center=true);
+        cylinder(h=Length/ladjust, r=.8*LidThick-LidRelief/2, center=true);
 }
-    
+
+module VDet(ladjust=0, xadjust=0)
+{
+    _rail2(xadjust, rot=0)
+        scale([.5,1,1])
+        cylinder(h=3, r=.8*LidThick-LidRelief/2, center=true);
+}
+
+module SlideRail(length, radius, xadjust=0, zadjust=0)
+{
+    translate([0,0,zadjust])
+    _rail2(xadjust=xadjust,rot=90)
+        //rotate([0,0,0])
+        union() {
+            cylinder(h=length, r=radius, center=true, $fn=7);
+            translate([0,0,-length/2-1+.02])
+            cylinder(h=2, r1=0, r2=radius, center=true,$fn=7);
+            translate([0,0,length/2+1-.02])
+            cylinder(h=2, r1=radius, r2=0, center=true,$fn=7);
+        }
+}
+
 module render_box()
 {
     workingWidth = Width - Thickness - 2*LidThick;
@@ -235,12 +267,44 @@ module render_box()
         }
         // subtract the rim for the lid
         translate([-1, -1, Height - RimHeight + LidThick])
+        difference() {
             RoundedShell(size=[Width + 2, Length + 2, LidHeight + 1],
                          radius=Radius + 1, thickness=LidThick + 1);
+            if (LidSlide) {
+                translate([LidThick+1, -1+Thickness, 0])
+                cube(size=[Width-2*LidThick, Radius + 2, LidHeight + 1]);
+            }
+        }
+        
+        // cut away interior of rim - goes with slide lid
+        if (RimAngle) {
+            translate([(Width+2)/2,
+                       (Length+2)/2+Thickness+LidThick,
+                       Height+LidHeight/2 - (Length/2)*sin(RimAngle)])
+            rotate([-RimAngle, 0, 0])
+            cube(size=[Width+2, Length+LidHeight, LidHeight], center=true);
+        }
 
-        if (LidDetent) {
+        if (!LidSlide && LidDetent) {
             translate([Width/2, Length/2, Height-(RimHeight-LidThick)/2])
-            LDet();
+                LDet();
+        }
+
+        // Make a slide rail, subtract it from interior rim
+        if (LidSlide) {
+            translate([Width/2, Length/2+Radius, Height-(RimHeight-LidThick)/2])
+            SlideRail(length=Length,
+                      radius=LidSlideDepth,
+                      xadjust=0,
+                      zadjust=LidSlideAdjust);
+        }
+
+        // With slide, detent is perpendicular and at back of rail
+        if (LidSlide && LidDetent) {
+            translate([Width/2,
+                       .9*Length,
+                       Height-(RimHeight-LidThick)/2+LidSlideAdjust])
+                VDet();
         }
 
         // Side mounting holes
@@ -283,10 +347,12 @@ module render_lid()
                        radius=max(0, Radius-LidThick-Thickness),
                        sidesonly=true, center=true);
 
-        // subtract rim
-        translate([0, 0, LidThick + (LidHeight - RimHeight)/2])
+        // subtract interior of rim
+        // for slide, lengthen the removed piece to take the whole end away
+        radjust = LidSlide? 2 * LidThick + Radius : 0;
+        translate([0, radjust/2, LidThick + (LidHeight - RimHeight)/2])
             RoundedBox(size=[Width - 2*LidThick + LidRelief,
-                            Length - 2*LidThick + LidRelief,
+                            Length - 2*LidThick + LidRelief + radjust,
                             RimHeight],
                        radius=max(0, Radius-LidThick)+LidRelief,
                        sidesonly=true, center=true);
@@ -296,9 +362,24 @@ module render_lid()
             scale([(Notchspan/2) * Width/RimHeight, .5, 1])
             cylinder(h=Length + 1, r=RimHeight, center=true);
     }
+
     if (LidDetent) {
-        translate([0,0,LidHeight/2-(RimHeight-LidThick)/2])
-            LDet(ladjust=-.5, xadjust=.1*LidThick);
+        translate([0, 0, LidHeight/2-(RimHeight-LidThick)/2])
+            LDet(ladjust=-.5, xadjust=LidRelief);
+    }
+
+    if (LidSlide) {
+        translate([0, 0, LidHeight/2-(RimHeight-LidThick)/2+LidSlideRelief])
+            SlideRail(length=.9*Length-2*Radius,
+                      radius=LidSlideDepth-.05,
+                      xadjust=LidRelief,
+                      zadjust=-LidSlideAdjust);
+    }
+    if (LidSlide && LidDetent) {
+        translate([0,
+                  -.8*Length/2,
+                  LidHeight/2-(RimHeight-LidThick)/2-LidSlideAdjust])
+            VDet(ladjust=-.5, xadjust=LidRelief);
     }
 }
 
