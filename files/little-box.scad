@@ -7,6 +7,8 @@
  */
  
 use <MCAD/boxes.scad>
+use <../../lib/shapes.scad>
+
 
 /* [Dimensions] */
 
@@ -27,24 +29,30 @@ LDiv2 = 1;
 WDiv2 = 3;
 
 /* [Lid] */
+LidHeight = 40;
+// Rim is really RimHeight - LidThick
+RimHeight = 9.5;
+LidThick = 1.2;
 
-LidSlide = false;
-// Detent+Slide changes detent
+LidRadius = 1.1;
+
 LidDetent = true;
+
+// Detent+Slide changes detent
+LidSlide = false;
 LidSlideDepth = 0.5;
 LidSlideRelief = 0.05;
 LidSlideAdjust = 0.1;
 
-LidHeight = 40;
-// Rim is really RimHeight - LidThick
-RimHeight = 9.5;
+RimCut = false;
+RimCutAdjust = 0;
 RimAngle = 0;
-LidThick = 1.2;
+
+// Ignored when using slide
+Notchspan = .25;
+
 LidRelief = 0.28;
 // top edge radius
-LidRadius = 1.1;
-// Set to 0 when using slide
-Notchspan = .25;
 
 /* [Additions] */
 Mounting_Holes = false;
@@ -237,6 +245,8 @@ module render_box()
     ldivsize2 = length2 / LDiv2;
     
     echo(str("box 1 is ",ldivsize1-Thickness,"x",wdivsize1-Thickness));
+    echo(str("interior is",wdivsize1-Thickness,"x",ldivsize1-Thickness,"x",
+                                 Height+Radius));
     if (Group1Span < 100)
       echo(str("box 2 is ",ldivsize2-Thickness,"x",wdivsize2-Thickness));
 
@@ -277,12 +287,14 @@ module render_box()
         }
         
         // cut away interior of rim - goes with slide lid
-        if (RimAngle) {
-            translate([(Width+2)/2,
-                       (Length+2)/2+Thickness+LidThick,
-                       Height+LidHeight/2 - (Length/2)*sin(RimAngle)])
-            rotate([-RimAngle, 0, 0])
-            cube(size=[Width+2, Length+LidHeight, LidHeight], center=true);
+        if (LidSlide && RimCut) {
+            translate([Width/2+1,
+                       Length/2+Thickness/2+LidThick/2,
+                       Height+LidHeight/2+RimCutAdjust])
+            rotate([90, 0, -90])
+                paracube(size=[Length-Thickness-LidThick, 2*LidHeight, Width+2],
+                        angle=RimAngle,
+                        center=true);
         }
 
         if (!LidSlide && LidDetent) {
@@ -356,11 +368,14 @@ module render_lid()
                             RimHeight],
                        radius=max(0, Radius-LidThick)+LidRelief,
                        sidesonly=true, center=true);
+
         // Thumb notch
-        translate([0,0,LidHeight/2+LidThick])
-        rotate([90,0,0])
-            scale([(Notchspan/2) * Width/RimHeight, .5, 1])
-            cylinder(h=Length + 1, r=RimHeight, center=true);
+        if (Notchspan > 0) {
+            translate([0,0,LidHeight/2+LidThick])
+            rotate([90,0,0])
+                scale([(Notchspan/2) * Width/RimHeight, .5, 1])
+                cylinder(h=Length + 1, r=RimHeight, center=true);
+        }
     }
 
     if (LidDetent) {
