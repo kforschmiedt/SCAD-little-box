@@ -21,7 +21,7 @@ Sections = 5;
 /* [Lid] */
 
 LidHeight = 40;
-RimHeight = 8;
+RimHeight = 8.5;
 LidRadius = 1.5;
 LidGap = 0.25;
 LidStyle = 3;
@@ -47,11 +47,16 @@ WeaveInterval = 12;
 WeaveThick = 1.5;
 WeaveGap = 1.1;
 
-/* [Monogram (style 4)] */
+/* [Monostring (style 4)] */
 
 Monogram = "Hi!";
 MonoScale = 0.33;
 MonoHeight = 1.75;
+MonoRotate = 0;
+
+/* [Mono3 (style 5)] */
+MonoScale2 = 0.44;
+MonoXAdj = [-5.5, 0.1, 5.5];
 
 /* [Options] */
 Make_Box = false;
@@ -59,10 +64,10 @@ Make_Rim = false;
 Make_Lid = false;
 Make_Gem = false;
 Make_Wavy = false;
-Make_Monogram = false;
 
 $fa = 0.5;
 $fs = 0.5;
+$fn = 0;
 
 module mirrorself(v=[0,0,1], overlap=.02)
 {
@@ -156,13 +161,17 @@ module render_box()
                 translate([0,0,-1]) {
                     // radius to outside wall of inner circle
                     // (interior wall of outer compartments)
-                    linear_extrude(height=Height+2)
-                        circle(r=Radius2+Wall);
+                    if (Radius2 > 0) {
+                        linear_extrude(height=Height+2)
+                            circle(r=Radius2+Wall);
+                    }
 
                     // radials
-                    for (angle = [0 : as: 359]) {
-                        rotate([0, 0, angle])
-                        radial(radius=Radius1, height=Height+2, wall=Wall);
+                    if (Sections > 0) {
+                        for (angle = [0 : as: 359]) {
+                            rotate([0, 0, angle])
+                            radial(radius=Radius1, height=Height+2, wall=Wall);
+                        }
                     }
                 }
             }
@@ -194,7 +203,8 @@ module _roundedLid()
     difference() {
         cyl_rounded(height=LidHeight,
                     radius=Radius1,
-                    redge=LidRadius);
+                    redge=LidRadius,
+                    rfn=0);
         LidGroove();
     }
 }
@@ -258,19 +268,6 @@ module lid3()
     }
 }
 
-module _letr(Str, Sizes, idx=0, base=0)
-{
-    echo(Str=Str, len=len(Str), base=base);
-    if (idx < len(Str)) {
-        size=Sizes[idx];
-        translate([base, 0, 0])
-        text(text=Str[idx],
-             size=size,
-             font="Script MT Bold:style=Italic");
-        _letr(Str, Sizes, idx+1, base+size);
-    }
-}
-
 module lid4()
 {
     size = MonoScale * Radius1;
@@ -278,12 +275,14 @@ module lid4()
     if (MonoHeight >= 0) {
         _roundedLid();
     
-        translate([0, -size/2, LidHeight+MonoHeight/2-.05])
-        linear_extrude(MonoHeight+.05, center=true)
-        text(text=Monogram,
-             size=size,
-             halign="center",
-             font="Script MT Bold:style=Italic");
+        rotate([0, 0, MonoRotate])
+        translate([0, -size/2, LidHeight+MonoHeight/2-.005])
+            linear_extrude(MonoHeight+.01, center=true)
+            text(text=Monogram,
+                 size=size,
+                 halign="center",
+                 font="Script MT Bold:style=Italic",
+                 $fn=0);
     } else {
         difference() {
             _roundedLid();
@@ -293,10 +292,41 @@ module lid4()
             text(text=Monogram,
                  size=size,
                  halign="center",
-                 font="Script MT Bold:style=Italic");
+                 font="Script MT Bold:style=Italic",
+                 $fn=0);
         }
     }
 }
+
+module mono(str, idx)
+{
+    if (idx < 3) {
+        size = (idx == 1? MonoScale2 : MonoScale) * Radius1;
+        base = (idx == 1? (MonoScale - MonoScale2)/2 * Radius1 : 0);
+        translate([MonoXAdj[idx], base, 0])
+        text(text=str[idx],
+            size=size, 
+            halign="center",
+            font="Script MT Bold:style=Italic",
+            $fn=0);
+        mono(str, idx+1);
+    }
+}
+ 
+module lid5()
+{
+    assert(MonoHeight > 0);
+
+    size = MonoScale * Radius1;
+
+    _roundedLid();
+
+    rotate([0, 0, MonoRotate])
+    translate([0, -size/2, LidHeight+MonoHeight/2-.05])
+        linear_extrude(MonoHeight+.05, center=true)
+    mono(str=Monogram, idx=0);    
+}
+
 
 if (Make_Box) {
     render_box();
@@ -311,6 +341,8 @@ if (Make_Lid) {
         lid3();
     else if (LidStyle == 4)
         lid4();
+    else if (LidStyle == 5)
+        lid5();
 }
 
 if (Make_Rim) {
@@ -324,7 +356,4 @@ if (Make_Gem) {
 
 if (Make_Wavy)
     weave();
-
-if (Make_Monogram)
-    _letr("KDF", [18,18,18]);
 
