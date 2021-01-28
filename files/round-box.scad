@@ -49,6 +49,7 @@ WeaveGap = 1.1;
 
 /* [Monostring (style 4)] */
 
+MonoFont = "Script MT Bold:style=Italic";
 Monogram = "Hi!";
 MonoScale = 0.33;
 MonoHeight = 1.75;
@@ -281,7 +282,7 @@ module lid4()
             text(text=Monogram,
                  size=size,
                  halign="center",
-                 font="Script MT Bold:style=Italic",
+                 font=MonoFont,
                  $fn=0);
     } else {
         difference() {
@@ -292,7 +293,7 @@ module lid4()
             text(text=Monogram,
                  size=size,
                  halign="center",
-                 font="Script MT Bold:style=Italic",
+                 font=MonoFont,
                  $fn=0);
         }
     }
@@ -307,7 +308,7 @@ module mono(str, idx)
         text(text=str[idx],
             size=size, 
             halign="center",
-            font="Script MT Bold:style=Italic",
+            font=MonoFont,
             $fn=0);
         mono(str, idx+1);
     }
