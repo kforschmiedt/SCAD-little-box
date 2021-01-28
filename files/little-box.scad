@@ -25,8 +25,14 @@ Group1Span = 50;    // [100]
 Split = "W";        // [L:Length, W:Width]
 LDiv1 = 2;
 WDiv1 = 2;
+Grade1 = 5;
+
 LDiv2 = 1;
 WDiv2 = 3;
+Grade2 = 5;
+
+Vents = 0;
+VentWidth = 2;
 
 /* [Lid] */
 LidHeight = 40;
@@ -50,6 +56,7 @@ RimAngle = 0;
 
 // Ignored when using slide
 Notchspan = .25;
+NotchHeight = .25;
 
 LidRelief = 0.28;
 // top edge radius
@@ -202,10 +209,10 @@ module LDet(ladjust=0, xadjust=0)
 {
     _rail2(xadjust,rot=90)
         scale([.5,1,1])
-        cylinder(h=Length/ladjust, r=.8*LidThick-LidRelief/2, center=true);
+        cylinder(h=Length+ladjust, r=.8*LidThick-LidRelief/2, center=true);
 }
 
-module VDet(ladjust=0, xadjust=0)
+module VDet(xadjust=0)
 {
     _rail2(xadjust, rot=0)
         scale([.5,1,1])
@@ -228,6 +235,9 @@ module SlideRail(length, radius, xadjust=0, zadjust=0)
 
 module render_box()
 {
+    function startspan(nom, div, grade) = (div == 1)? nom : nom - (div-1)*grade/2;
+    function nsum(n) = (n * (n-1))/2;
+
     workingWidth = Width - Thickness - 2*LidThick;
     workingLength = Length - Thickness - 2*LidThick;
     
@@ -236,6 +246,18 @@ module render_box()
     wdivsize1 = width1 / WDiv1;
     ldivsize1 = length1 / LDiv1;
 
+    echo(str("wdivsize1 = ", wdivsize1));
+    wgrade1 = Split != "L"? Grade1 : 0;
+    echo(str("wgrade1 = ", wgrade1));
+    wstart1 = startspan(wdivsize1, WDiv1, wgrade1);
+    echo(str("wstart1 = ", wstart1));
+
+    echo(str("ldivsize1 = ", ldivsize1));
+    lgrade1 = Split == "L"? Grade1 : 0;
+    echo(str("lgrade1 = ", lgrade1));
+    lstart1 = startspan(ldivsize1, LDiv1, lgrade1);
+    echo(str("lstart1 = ", lstart1));
+
     w2off = (Split == "L"? width1 : 0);
     width2 = Split == "L"? (workingWidth - width1) : workingWidth;
     l2off = (Split == "L"? 0 : length1);
@@ -243,38 +265,92 @@ module render_box()
 
     wdivsize2 = width2 / WDiv2;
     ldivsize2 = length2 / LDiv2;
+
+    echo(str("wdivsize2 = ", wdivsize2));
+    wgrade2 = Split != "L"? Grade2 : 0;
+    echo(str("wgrade2 = ", wgrade2));
+    wstart2 = startspan(wdivsize2, WDiv2, wgrade2);
+    echo(str("wstart2 = ", wstart2));
+
+    echo(str("ldivsize2 = ", ldivsize2));
+    lgrade2 = Split == "L"? Grade2 : 0;
+    echo(str("lgrade2 = ", lgrade2));
+    lstart2 = startspan(ldivsize2, LDiv2, lgrade2);
+    echo(str("lstart2 = ", lstart2));
     
     echo(str("box 1 is ",ldivsize1-Thickness,"x",wdivsize1-Thickness));
-    echo(str("interior is",wdivsize1-Thickness,"x",ldivsize1-Thickness,"x",
-                                 Height+Radius));
-    if (Group1Span < 100)
-      echo(str("box 2 is ",ldivsize2-Thickness,"x",wdivsize2-Thickness));
+    echo(str("interior is ",wdivsize1-Thickness,"W x ",
+             ldivsize1-Thickness, "L x ", Height+Radius, "H"));
+
+    if (Group1Span < 100) {
+        echo(str("box 2 is ",ldivsize2-Thickness," x ",wdivsize2-Thickness));
+        echo(str("interior is ",wdivsize2-Thickness,"W x ",
+                 ldivsize2-Thickness, "L x ", Height+Radius, "H"));
+    }
 
     difference() {
         RoundedBox(size=[Width, Length, Height], radius=Radius, sidesonly=true);
 
         // subtract the internal boxes
-        for (woff = [Thickness + LidThick : wdivsize1 : width1],
-             loff = [Thickness + LidThick : ldivsize1 : length1]) {
+        echo("GROUP 1");
+        for (widx = [0 : 1 : WDiv1-1],
+             lidx = [0 : 1 : LDiv1-1]) {
+ 
+            woff = Thickness + LidThick + widx * wstart1 + wgrade1 * nsum(widx);
+            wsize = wstart1 + wgrade1 * widx - Thickness;
+
+            loff = Thickness + LidThick + lidx * lstart1 + lgrade1 * nsum(lidx);
+            lsize = lstart1 + lgrade1 * lidx - Thickness;
+
+            echo(str("lidx: ", lidx, " loff: ",loff, " lsize: ", lsize));
+            echo(str("widx: ", widx, " woff: ",woff, " wsize: ", wsize));
+
             translate([woff,loff,Thickness])
-                RoundedBox(size=[wdivsize1-Thickness,
-                                 ldivsize1-Thickness,
-                                 Height+Radius],
+                RoundedBox(size=[wsize, lsize, Height+Radius],
                            radius=Radius-Thickness,
                            sidesonly=!Rounded);
         }
         // Group 2
         if (Group1Span < 100) {
-            for (woff = [Thickness : wdivsize2 : width2],
-                 loff = [Thickness : ldivsize2 : length2]) {
-                translate([w2off + woff + Thickness, l2off + loff + Thickness, Thickness])
-                    RoundedBox(size=[wdivsize2-Thickness,
-                                    ldivsize2-Thickness,
-                                    Height+Radius],
+            echo("GROUP 2");
+            for (widx = [0 : 1 : WDiv2-1],
+                 lidx = [0 : 1 : LDiv2-1]) {
+
+                woff = Thickness + widx * wstart2 + wgrade2 * nsum(widx);
+                wsize = wstart2 + wgrade2 * widx - Thickness;
+
+                loff = Thickness + lidx * lstart2 + lgrade2 * nsum(lidx);
+                lsize = lstart2 + lgrade2 * lidx - Thickness;
+
+                echo(str("lidx: ", lidx, " loff: ",loff, " lsize: ", lsize));
+                echo(str("widx: ", widx, " woff: ",woff, " wsize: ", wsize));
+
+                translate([w2off + woff + LidThick,
+                           l2off + loff + LidThick,
+                           Thickness])
+                    RoundedBox(size=[wsize, lsize, Height+Radius],
                                radius=Radius - Thickness,
                                sidesonly=!Rounded);
             }
+            if (Vents > 0) {
+                xsize = (Split == "L")? Thickness + .1:
+                                        Width - 4*Thickness - 2*LidThick;
+                ysize = (Split == "W")? Thickness + .1:
+                                        Length - 4*Thickness - 2*LidThick;
+                xoff = (Split == "L")? LidThick + width1 - .05 :
+                                       2*Thickness + LidThick;
+                yoff = (Split == "W")? LidThick + length1 - .05 :
+                                       2*Thickness + LidThick;
+                
+                ztop = Height - Thickness - RimHeight + LidThick;
+                zvent = (ztop - Thickness) / Vents;
+                for (zoff = [Thickness+.75*zvent : zvent : ztop]) {
+                    translate([xoff, yoff, zoff])
+                        cube([xsize, ysize, VentWidth]);
+                }
+            }
         }
+
         // subtract the rim for the lid
         translate([-1, -1, Height - RimHeight + LidThick])
         difference() {
@@ -285,21 +361,26 @@ module render_box()
                 cube(size=[Width-2*LidThick, Radius + 2, LidHeight + 1]);
             }
         }
-        
-        // cut away interior of rim - goes with slide lid
-        if (LidSlide && RimCut) {
-            translate([Width/2+1,
-                       Length/2+Thickness/2+LidThick/2,
-                       Height+LidHeight/2+RimCutAdjust])
-            rotate([90, 0, -90])
-                paracube(size=[Length-Thickness-LidThick, 2*LidHeight, Width+2],
-                        angle=RimAngle,
-                        center=true);
-        }
 
-        if (!LidSlide && LidDetent) {
-            translate([Width/2, Length/2, Height-(RimHeight-LidThick)/2])
-                LDet();
+        // cut away top of interior inside of rim
+        if (RimCut) {
+            if (LidSlide) {
+                translate([Width/2+1,
+                           Length/2+Thickness/2+LidThick/2,
+                           Height+LidHeight/2+RimCutAdjust])
+                rotate([90, 0, -90])
+                    paracube(size=[Length-Thickness-LidThick, 2*LidHeight, Width+2],
+                            angle=RimAngle,
+                            center=true);
+            } else {
+                translate([Width/2,
+                           Length/2,
+                           Height+LidHeight+RimCutAdjust])
+                rotate([90, 0, -90])
+                    paracube(size=[Length+.02, 2*LidHeight, Width+2],
+                            angle=RimAngle,
+                            center=true);
+            }
         }
 
         // Make a slide rail, subtract it from interior rim
@@ -309,14 +390,19 @@ module render_box()
                       radius=LidSlideDepth,
                       xadjust=0,
                       zadjust=LidSlideAdjust);
-        }
 
-        // With slide, detent is perpendicular and at back of rail
-        if (LidSlide && LidDetent) {
-            translate([Width/2,
-                       .9*Length,
-                       Height-(RimHeight-LidThick)/2+LidSlideAdjust])
-                VDet();
+            // With slide, detent is perpendicular and at back of rail
+        }
+        if (LidDetent) {
+            if (LidSlide) {
+                translate([Width/2,
+                           .9*Length,
+                           Height-(RimHeight-LidThick)/2+LidSlideAdjust])
+                    VDet();
+            } else {
+                translate([Width/2, Length/2, Height-(RimHeight-LidThick)/2])
+                    LDet(ladjust=-Length/2);
+            }
         }
 
         // Side mounting holes
@@ -373,14 +459,14 @@ module render_lid()
         if (Notchspan > 0) {
             translate([0,0,LidHeight/2+LidThick])
             rotate([90,0,0])
-                scale([(Notchspan/2) * Width/RimHeight, .5, 1])
+                scale([(Notchspan/2) * Width/RimHeight, NotchHeight, 1])
                 cylinder(h=Length + 1, r=RimHeight, center=true);
         }
     }
 
-    if (LidDetent) {
+    if (!LidSlide && LidDetent) {
         translate([0, 0, LidHeight/2-(RimHeight-LidThick)/2])
-            LDet(ladjust=-.5, xadjust=LidRelief);
+            LDet(ladjust=-Length/2-Radius, xadjust=LidRelief);
     }
 
     if (LidSlide) {
@@ -389,18 +475,19 @@ module render_lid()
                       radius=LidSlideDepth-.05,
                       xadjust=LidRelief,
                       zadjust=-LidSlideAdjust);
-    }
-    if (LidSlide && LidDetent) {
-        translate([0,
-                  -.8*Length/2,
-                  LidHeight/2-(RimHeight-LidThick)/2-LidSlideAdjust])
-            VDet(ladjust=-.5, xadjust=LidRelief);
+        if (LidDetent) {
+            translate([0,
+                       -.8*Length/2,
+                       LidHeight/2-(RimHeight-LidThick)/2-LidSlideAdjust])
+                VDet(xadjust=LidRelief);
+        }
     }
 }
 
 
 if (MakeLid) {
     translate([-Width/2 - 5, Length / 2, LidHeight / 2])
+    rotate([0,0,180])
         render_lid();
 }
 
