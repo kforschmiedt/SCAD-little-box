@@ -27,6 +27,7 @@ $fa=.55;
 $fn = 0;
 
 Make_Plug = false;
+Show_Domes = false;
 
 module _dummy() {}
 
@@ -52,6 +53,17 @@ module donut(r1, r2)
     circle(r=r2, $fn=40);
 }
 
+module _dome(h, r)
+{
+    A = -(h+.01)/(r*r);
+    B = 0;
+    C = h-.01;
+
+    pts = FPts2(0, r, A, B, C);
+    //echo(pts);
+
+    polygon(pts);
+}
 module dome(h, r)
 {
     A = -(h+.01)/(r*r);
@@ -62,7 +74,7 @@ module dome(h, r)
     //echo(pts);
 
     rotate_extrude()
-        polygon(pts);
+        _dome(h, r);
 }
     
 module render_plug()
@@ -84,7 +96,7 @@ module render_plug()
         }
         render()
         translate([0,0,-0.01])
-        dome(h=Height*.75, r=Radius-Wall);
+            dome(h=Height*.75, r=Radius-Wall);
         render()
         translate([0, 0, Height*.55])
             cylinder(h=Height*.45,r1=Height*.4,r2=0);
@@ -93,3 +105,10 @@ module render_plug()
 
 if (Make_Plug)
     render_plug();
+
+if (Show_Domes) {
+    translate([0, Height/2, 0])
+        _dome(h=Height/2, r=Radius*1.03125);
+ //   translate([0,0,-0.01])
+        #_dome(h=Height*.75, r=Radius-Wall);
+}
