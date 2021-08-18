@@ -256,12 +256,12 @@ module lid3()
                           r=Radius1,
                           wall=wall,
                           center=true);
-                    cyl_weave(h=LidHeight,
-                          r=Radius1,
-                          wscale=yscale,
-                          wgap=gap,
-                          wcycles=LidRadius/period
-                          );
+                    disc_weave(h=2*yscale+wall,
+                               r=Radius1,
+                               yscale=yscale,
+                               gap=gap,
+                               period=period,
+                               wall=wall);
                 }
             }
         }
