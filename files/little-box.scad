@@ -1,5 +1,5 @@
 /*
- * little-box-scad
+ * little-box.scad
  * A configurable, printable utility box and lid
  *
  * (C)Copyright 2020 Kent Forschmiedt, All Rights Reserved
@@ -68,9 +68,22 @@ MH_W = 0;
 MH_D = 2;
 MH_ScrewSize = 4.2;
 
+/* [Monogram] */
+
+MonoFont = "Script MT Bold:style=Italic";
+Monogram = "RC";
+MonoScale = .2;
+MonoScale2 = .2;
+MonoHeight = 1.75;
+
+MonoXAdj = [-20, .4, 12, 20, 30];
+
+
+
 /* [Options] */
 Make_Box = false;
 MakeLid = false;
+MakeMono = false;
 
 $fa = 0.5;
 $fs = 0.5;
@@ -212,11 +225,11 @@ module LDet(ladjust=0, xadjust=0)
         cylinder(h=Length+ladjust, r=.8*LidThick-LidRelief/2, center=true);
 }
 
-module VDet(xadjust=0)
+module VDet(height, xadjust=0)
 {
     _rail2(xadjust, rot=0)
-        scale([.5,1,1])
-        cylinder(h=3, r=.8*LidThick-LidRelief/2, center=true);
+        scale([.55,1,1])
+        cylinder(h=height, r=.8*LidThick-LidRelief/2, center=true);
 }
 
 module SlideRail(length, radius, xadjust=0, zadjust=0)
@@ -398,7 +411,7 @@ module render_box()
                 translate([Width/2,
                            .9*Length,
                            Height-(RimHeight-LidThick)/2+LidSlideAdjust])
-                    VDet();
+                    VDet(height=4*LidSlideDepth);
             } else {
                 translate([Width/2, Length/2, Height-(RimHeight-LidThick)/2])
                     LDet(ladjust=-Length/2);
@@ -479,11 +492,34 @@ module render_lid()
             translate([0,
                        -.8*Length/2,
                        LidHeight/2-(RimHeight-LidThick)/2-LidSlideAdjust])
-                VDet(xadjust=LidRelief);
+                VDet(height=.9*4*LidSlideDepth, xadjust=LidRelief);
         }
     }
 }
 
+
+module mono(str, idx)
+{
+    if (idx < len(str)) {
+        size = (idx == 1? MonoScale2 : MonoScale) * Height;
+        base = (idx == 1? (MonoScale - MonoScale2)/2 * Height : 0);
+        translate([MonoXAdj[idx], base, 0])
+        text(text=str[idx],
+            size=size, 
+            halign="center",
+            font=MonoFont,
+            $fn=0);
+        mono(str, idx+1);
+    }
+} 
+
+module mono_face()
+{
+    translate([Width/2, Length,(Height-RimHeight)/2])
+    rotate([90, 0, 180])
+        linear_extrude(MonoHeight+.05, center=true)
+    mono(str=Monogram, idx=0);    
+}
 
 if (MakeLid) {
     translate([-Width/2 - 5, Length / 2, LidHeight / 2])
@@ -494,4 +530,8 @@ if (MakeLid) {
 if (Make_Box) {
     translate([5, 0, 0])
         render_box();
+}
+
+if (MakeMono) {
+    mono_face();
 }
