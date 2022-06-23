@@ -74,6 +74,7 @@ MonoScale = .2;
 MonoScale2 = .2;
 MonoHeight = 1.75;
 MonoXAdj = [-20, .4, 12, 20, 30];
+MonoYAdj = 10;
 
 /* [Options] */
 Make_Box = false;
@@ -401,9 +402,9 @@ module mono(str, idx)
 
 module mono_face()
 {
-    translate([Width/2, Length,(Height-RimHeight)/2])
+    translate([Width/2, Length,(Height-RimHeight)/2-MonoYAdj])
     rotate([90, 0, 180])
-        linear_extrude(MonoHeight+.05, center=true)
+        #linear_extrude(MonoHeight+.05, center=true)
     mono(str=Monogram, idx=0);    
 }
 
