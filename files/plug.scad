@@ -4,7 +4,6 @@
  * Top for shaker
  *
  * (C)Copyright 2020 Kent Forschmiedt, All Rights Reserved
- * Licensed under Creative Commons
  */
 
 use <../../lib/shapes.scad>
