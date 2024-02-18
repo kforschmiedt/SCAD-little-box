@@ -144,7 +144,7 @@ module render_box()
     difference() {
         // Main body
         linear_extrude(height=Height)
-        circle(r=Radius1);
+            circle(r=Radius1);
 
         // reserve floor
         translate([0,0,Wall]) {
@@ -178,8 +178,6 @@ module render_box()
             }
         }
     }
-    // add rim last
-    Rim();
 }
 
 module _burst(count=5, offset=0)
@@ -334,27 +332,28 @@ if (Make_Box) {
 }
 
 if (Make_Lid) {
-    if (LidStyle == 1)
-        lid1();
-    else if (LidStyle == 2)
-        lid2();
-    else if (LidStyle == 3)
-        lid3();
-    else if (LidStyle == 4)
-        lid4();
-    else if (LidStyle == 5)
-        lid5();
+    translate([0,0,Height+.5]) {
+        if (LidStyle == 1)
+            lid1();
+        else if (LidStyle == 2)
+            lid2();
+        else if (LidStyle == 3)
+            lid3();
+        else if (LidStyle == 4)
+            lid4();
+        else if (LidStyle == 5)
+            lid5();
+        if (Make_Gem) {
+            lidgems(sides=7, ldiv=[12, 15], r=2, offset=6, count=5);
+        }
+    }
 }
 
-if (Make_Rim) {
+if (Make_Box || Make_Rim) {
     Rim();
-    //rim(radius=Radius1-Wall, height=RimHeight, rtop=.2*Wall , wbot=Wall);
 }
 
-if (Make_Gem) {
-    lidgems(sides=7, ldiv=[12, 15], r=2, offset=6, count=5);
-}
-
-if (Make_Wavy)
+if (Make_Wavy) {
     weave();
+}
 
